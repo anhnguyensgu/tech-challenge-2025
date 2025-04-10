@@ -1,0 +1,7 @@
+set dotenv-filename := ".env.local"
+
+serve:
+  cargo run --bin api --release
+
+migrate:
+  cargo run --bin migration_app
