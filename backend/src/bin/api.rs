@@ -1,24 +1,31 @@
-use std::sync::Arc;
+use std::{env, sync::Arc};
 
 use axum::{routing::get, Router};
-use backend::{account, database, state::AppState};
+use backend::{
+    account,
+    block::CachableBlockStorage,
+    cache,
+    gas::CachableGasPriceStorage,
+    state::{new_web3_client, AppState},
+};
 use tokio::net::TcpListener;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use web3::{transports::Http, Web3};
-
-async fn new_web3_client() -> Web3<Http> {
-    let transport =
-        web3::transports::Http::new("https://ethereum-sepolia-rpc.publicnode.com").unwrap();
-    web3::Web3::new(transport)
-}
 
 #[tokio::main]
 async fn main() {
-    let app = Arc::new(AppState {
-        web3_client: new_web3_client().await,
-        pg_pool: database::init_pg_pool().await,
-    });
+    let web3_client = new_web3_client().await;
+    let redis_client = cache::init().await;
+    let gas = CachableGasPriceStorage {
+        redis_client: redis_client.clone(),
+        web3_client: web3_client.clone(),
+    };
+
+    let block = CachableBlockStorage {
+        redis_client: redis_client.clone(),
+        web3_client: web3_client.clone(),
+    };
+    let app = Arc::new(AppState::new(gas, block, web3_client, redis_client).await);
 
     tracing_subscriber::registry()
         .with(
@@ -32,7 +39,10 @@ async fn main() {
     let router = Router::new()
         .route("/accounts", get(account::route::get_account_info))
         .with_state(app);
-    let port = 3000;
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse::<u16>()
+        .unwrap();
 
     let listener = TcpListener::bind(format!("0.0.0.0:{port}"))
         .await
