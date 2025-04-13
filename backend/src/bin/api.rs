@@ -7,6 +7,7 @@ use backend::{
     cache,
     gas::CachableGasPriceStorage,
     state::{new_web3_client, AppState},
+    token,
 };
 use tokio::net::TcpListener;
 use tracing::info;
@@ -28,16 +29,14 @@ async fn main() {
     let app = Arc::new(AppState::new(gas, block, web3_client, redis_client).await);
 
     tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                format!("{}=debug,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
-            }),
-        )
+        .with(tracing_subscriber::EnvFilter::new("info"))
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     let router = Router::new()
         .route("/accounts", get(account::route::get_account_info))
+        .route("/tokens", get(token::get_tokens_by_owner))
+        .route("/tokens/{token_id}", get(token::get_token_by_id))
         .with_state(app);
     let port = env::var("PORT")
         .unwrap_or_else(|_| "3000".to_string())

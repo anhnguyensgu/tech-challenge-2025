@@ -7,8 +7,8 @@ async function main() {
         deployer.address
     );
 
-    const HelloWorld = await ethers.getContractFactory("SimpleNFT");
-    const contract = await HelloWorld.deploy();
+    const simpleNFT = await ethers.getContractFactory("SimpleNFT");
+    const contract = await simpleNFT.deploy();
 
     console.log("Contract deployed at:", contract.address);
 }

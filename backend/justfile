@@ -4,4 +4,7 @@ serve:
   cargo run --bin api --release
 
 migrate:
-  cargo run --bin migration_app
+  sqlx migrate run
+
+indexer:
+  cargo run --bin indexer

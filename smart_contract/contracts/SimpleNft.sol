@@ -5,8 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SimpleNFT is ERC721, Ownable {
-    constructor() ERC721("SimpleNFT", "SNFT") Ownable(msg.sender) {}
-
+    constructor() ERC721("SimpleNFT", "SNFT") Ownable(msg.sender) {} 
     function mint(uint256 tokenId) public returns (uint256) {
         _safeMint(msg.sender, tokenId);
         return tokenId;

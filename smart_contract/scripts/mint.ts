@@ -1,32 +1,26 @@
 // scripts/call.js
-const {ethers} = require("ethers");
-const fs = require("fs");
+import { ethers } from "ethers";
+import fs from "fs";
 
 require("dotenv").config();
+const endpointUrl = process.env["RPC_URL"];
 const privateKey = process.env["PRIVATE_KEY"] || "";
+const contractAddress = process.env["CONTRACT_ADDRESS"] || "";
 
 async function main() {
-    // Load ABI
-    const abi = JSON.parse(fs.readFileSync("./abi/SimpleNFT.json", "utf8"));
+  const abi = JSON.parse(fs.readFileSync("./abi/SimpleNFT.json", "utf8"));
 
-    // Contract address
-    const contractAddress = "0x21b06BEc125803635f0a9221655E731f6b0DB478";
+  const provider = new ethers.JsonRpcProvider(endpointUrl);
+  const wallet = new ethers.Wallet(privateKey, provider);
 
-    // Set up provider and wallet
-    const provider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
-    const wallet = new ethers.Wallet(privateKey, provider);
+  const contract = new ethers.Contract(contractAddress, abi.abi, wallet);
 
-    // Create contract instance
-    const contract = new ethers.Contract(contractAddress, abi.abi, wallet);
+  const name = await contract.name(); // ERC721 example
+  console.log("Contract name:", name);
 
-    // 👇 Call a read function (e.g. name, symbol, balanceOf)
-    const name = await contract.name(); // ERC721 example
-    console.log("Contract name:", name);
-
-    // 👇 Call a write function (e.g. mint)
-    const tx = await contract.mint(3);
-    await tx.wait();
-    console.log("Minted! Tx hash:", tx.hash);
+  const tx = await contract.mint(9);
+  await tx.wait();
+  console.log("Minted! Tx hash:", tx.hash);
 }
 
 main().catch(console.error);
