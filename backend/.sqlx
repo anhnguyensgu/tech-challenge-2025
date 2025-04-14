@@ -1,0 +1,2 @@
+export DATABASE_URL=postgres://postgres:postgres@localhost/eth_indexer
+cargo sqlx prepare -- --sqlx-cache-dir /tmp/sqlx-cache
