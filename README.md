@@ -149,6 +149,7 @@ npx hardhat run scripts/mint.ts --network sepolia
 - SQLx is used with compile-time verification and a separate migration container.
 - Redis and Postgres are used for performance and reliability.
 - Smart contracts are managed via Hardhat and written in Solidity.
+- I’ve put the frontend tasks on hold for now since I’m currently more focused on backend work.
 
 ---
 
