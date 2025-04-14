@@ -1,0 +1,16 @@
+FROM rust:1.85 as builder
+
+WORKDIR /app
+
+# Install required libs and sqlx-cli
+RUN apt-get update && \
+    apt-get install -y pkg-config libssl-dev libpq-dev && \
+    cargo install sqlx-cli --no-default-features --features postgres
+
+# Copy only migrations if you don't need code
+COPY migrations ./migrations
+
+# Set DATABASE_URL at runtime
+ENV DATABASE_URL=postgres://user:pass@localhost:5432/mydb
+
+ENTRYPOINT ["sqlx", "migrate", "run"]

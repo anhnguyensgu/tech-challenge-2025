@@ -1,4 +1,4 @@
-use backend::current_block::{current_offset, update_offset};
+use backend::current_block::{current_offset, update_offset, BlockOffset};
 use backend::database;
 use backend::state::new_web3_client;
 use backend::token::upsert_token_owner;
@@ -16,8 +16,16 @@ async fn main() {
     let contract_address = env::var("CONTRACT_ADDRESS").expect("CONTRACT_ADDRESS is not set");
     let current_offset = current_offset(&pg_pool, &contract_address)
         .await
-        .expect("should query successfully")
-        .expect("should have offset");
+        .expect("should query successfully");
+    let current_offset = current_offset.unwrap_or_else(|| {
+        let start_block = env::var("START_BLOCK")
+            .expect("START_BLOCK is not set")
+            .parse::<i64>()
+            .expect("should parse to i64");
+        BlockOffset {
+            current_offset: start_block,
+        }
+    });
     println!("Current offset: {:?}", current_offset);
 
     let contract_address_param: H160 = contract_address.parse().expect("Invalid contract address");
